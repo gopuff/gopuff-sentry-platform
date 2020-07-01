@@ -1,0 +1,53 @@
+{
+  "version": "Notebook/1.0",
+  "items": [{
+      "type": 1,
+      "content": {
+        "json": "## Meraki Failover Dashboard\n---\n"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "merakiorgdevices_CL\n| where TimeGenerated > ago(30m) \n| sort by TimeGenerated desc \n| project doName=name_s, DeviceOrgLAN=lanIp_s, TimeGenerated\n| join (\n    merakideviceips_CL\n    | where TimeGenerated > ago(30m)\n    | where publicIp_s != \"Other\"\n    | project publicIp_s, DeviceLAN=lanIp_s\n) on $left.DeviceOrgLAN == $right.DeviceLAN\n| where publicIp_s != tostring(\"Other\")\n| summarize dcount(publicIp_s) by publicIp_s, doName",
+        "size": 0,
+        "title": "Meraki Public IP's",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "categoricalbar",
+        "chartSettings": {
+          "xAxis": "publicIp_s",
+          "group": null,
+          "createOtherGroup": 0,
+          "showMetrics": false
+        }
+      },
+      "name": "query - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "merakiorgdevices_CL\n| where TimeGenerated > ago(12h) \n| sort by TimeGenerated desc \n| project doNetId=networkId_s, doName=name_s, doModel=model_s, doMac=mac_s, doSerial=serial_s, DeviceOrgLAN=lanIp_s, doType=Type, doUrl=url_s, doLat=lat_s, doLong=lng_s, doFirmware=firmware_s, doTime=TimeGenerated\n| join (\n    merakideviceips_CL\n    | where TimeGenerated > ago(12h)\n    | project interface_s, dns_s, gateway_s, vlan_s, status_s, PublicIP=publicIp_s, DeviceLAN=lanIp_s\n) on $left.DeviceOrgLAN == $right.DeviceLAN\n| summarize ipCounter = dcount(PublicIP) by doName, doNetId\n| order by ipCounter desc\n| where ipCounter > 1",
+        "size": 0,
+        "title": "Meraki Public IP's changed within 12 hours",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "query - 2"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourcegroups/siem-prod-eastus/providers/microsoft.operationalinsights/workspaces/siem-prod-eastus"
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

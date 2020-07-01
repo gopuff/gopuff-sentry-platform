@@ -1,0 +1,135 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "## Slack Workbook - File Transfer Behavior\n---\n\nWelcome to the Slack File Transfer Threat Workbook! "
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "slack_CL\n| where action_s == \"file_downloaded\"\n| where TimeGenerated > ago(21d)\n| extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec \n| where createTime > ago(14d)\n| extend dynamicBody = todynamic(entity_body_s)\n| extend type = tostring(dynamicBody.type)\n| extend filePayload = todynamic(tostring(dynamicBody.file))\n| extend fileName = tostring(filePayload.name)\n| extend fileFiletype = tostring(filePayload.filetype)\n//| extend fileTitle = tostring(filePayload.title)\n//| project TimeGenerated, fileName, fileFiletype, actor_user_email_s, actor_user_id_s, context_ip_address_s\n//| where fileFiletype == \"application/pdf\" or fileFiletype == \"text/plain\" or fileFiletype == \"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\" or fileFiletype == \"application/vnd.ms-excel.sheet.macroenabled.12\" or fileFiletype == \"application/vnd.ms-powerpoint\" or fileFiletype == \"text/csv\"\n| where fileFiletype contains \"application\" or fileFiletype contains \"text\" or fileFiletype contains \"excel\"\n| summarize count() by fileFiletype\n| render barchart;",
+        "size": 1,
+        "title": "Slack File Downloads (14 days)",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "60",
+      "name": "query - 2",
+      "styleSettings": {
+        "maxWidth": "60"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "slack_CL\n| where TimeGenerated > ago(21d)\n| extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec \n| where createTime > ago(14d)\n| where action_s == \"file_uploaded\"\n| extend dynamicBody = todynamic(entity_body_s)\n| extend type = tostring(dynamicBody.type)\n| extend filePayload = todynamic(tostring(dynamicBody.file))\n| extend fileName = tostring(filePayload.name)\n| extend fileFiletype = tostring(filePayload.filetype)\n| where fileName !contains \"png\" \n| where fileName !contains \"jpg\"\n| where fileName !contains \"gif\"\n| extend customFileType = case(fileName contains \"xls\" , \"Excel\", fileName contains \"pdf\", \"PDF\", fileName contains \"csv\", \"CSV\", \"Misc File Type\")\n| summarize count() by customFileType\n| render barchart;",
+        "size": 1,
+        "title": "Slack File Uploads (14 days)",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "40",
+      "name": "query - 2 - Copy",
+      "styleSettings": {
+        "maxWidth": "40"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "slack_CL\r\n| where TimeGenerated > ago(21d)\r\n| extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec \r\n| where createTime > ago(14d)\r\n| where action_s contains \"file\"\r\n| summarize count() by action_s, bin(createTime, 1h)\r\n| render timechart;",
+        "size": 0,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "query - 3"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Slack Custom Download Monitor - Daily Vitals"
+      },
+      "name": "text - 5"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "slack_CL\r\n| where TimeGenerated > ago(21d)\r\n| extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec \r\n| where createTime > ago(14d)\r\n| where action_s == \"file_downloaded\"\r\n| extend dynamicBody = todynamic(entity_body_s)\r\n| extend type = tostring(dynamicBody.type)\r\n| extend filePayload = todynamic(tostring(dynamicBody.file))\r\n| extend fileName = tostring(filePayload.name)\r\n| extend fileFiletype = tostring(filePayload.filetype)\r\n| where fileName == \"gopuff_daily_vitals_2020\"\r\n| summarize Download_Count = count() by actor_user_id_s, actor_user_email_s, actor_user_name_s\r\n| extend Threat_Level = case(Download_Count >= 15, \"❌ High Risk\", Download_Count < 15 and Download_Count >= 7,\"⚠️ Moderate Risk\", \"✔️ Low Risk\")\r\n| join kind= inner(slack_CL\r\n    | extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec \r\n    | extend dynamicBody = todynamic(entity_body_s)\r\n    | extend filePayload = todynamic(tostring(dynamicBody.file))\r\n    | extend fileName = tostring(filePayload.name)\r\n    | extend fileFiletype = tostring(filePayload.filetype)\r\n    | where fileName == \"gopuff_daily_vitals_2020\"\r\n    | summarize Latest_Download = max(createTime) by actor_user_id_s\r\n    )on $left.actor_user_id_s == $right.actor_user_id_s\r\n    | order by Download_Count desc\r\n    | project Threat_Level, actor_user_name_s, actor_user_email_s, actor_user_id_s, Download_Count, Latest_Download",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Daily Vitals - Download Thread Detector",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "rowLimit": 50,
+          "filter": true,
+          "labelSettings": [
+            {
+              "columnId": "Threat_Level",
+              "label": "Threat Level"
+            },
+            {
+              "columnId": "actor_user_name_s",
+              "label": "Actor Name"
+            },
+            {
+              "columnId": "actor_user_email_s",
+              "label": "Actor Email"
+            },
+            {
+              "columnId": "actor_user_id_s",
+              "label": "Actor Slack Id"
+            },
+            {
+              "columnId": "Download_Count",
+              "label": "Download Count"
+            },
+            {
+              "columnId": "Latest_Download",
+              "label": "Latest Download"
+            }
+          ]
+        }
+      },
+      "customWidth": "60",
+      "showPin": true,
+      "name": "query - 4",
+      "styleSettings": {
+        "maxWidth": "60"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "slack_CL\r\n| where TimeGenerated > ago(21d)\r\n| extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec \r\n| where createTime > ago(14d)\r\n| where action_s == \"file_downloaded\"\r\n| extend dynamicBody = todynamic(entity_body_s)\r\n| extend type = tostring(dynamicBody.type)\r\n| extend filePayload = todynamic(tostring(dynamicBody.file))\r\n| extend fileName = tostring(filePayload.name)\r\n| extend fileFiletype = tostring(filePayload.filetype)\r\n| where fileName == \"gopuff_daily_vitals_2020\"\r\n| summarize Total_Downloads = count() by bin(createTime, 1h)\r\n| render timechart;",
+        "size": 0,
+        "title": "Download Velocity of Daily Vitals",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "40",
+      "name": "query - 6",
+      "styleSettings": {
+        "maxWidth": "40"
+      }
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourcegroups/siem-prod-eastus/providers/microsoft.operationalinsights/workspaces/siem-prod-eastus"
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
