@@ -1,0 +1,242 @@
+trigger:
+  batch: true
+
+  # Add in branches you would like to trigger the build pipeline
+  branches:
+    include:
+      - "master"
+
+  paths:
+    exclude:
+      - README.md
+      - .gitignore
+      - .eslintrc.js
+      - .prettierrc.js
+
+# Trigger for pull requests
+pr: none
+
+# Boolean parameters to allow stage to run
+parameters:
+  - name: buildContainerSlack
+    default: false
+    type: boolean
+  - name: buildContainerMeraki
+    default: true
+    type: boolean
+  - name: runTemplateSlack
+    default: false
+    type: boolean
+  - name: runTemplateMeraki
+    default: true
+    type: boolean
+  - name: runFunctionBuildDeploy
+    default: false
+    type: boolean
+  - name: buildServerName
+    default: "container"
+    type: string
+
+# Global Variables
+variables:
+  AppNamePrefix: "slack-api" # Name of the app to be deployed (Infra names are generated from this value)
+  Subscription: "prod" # Subscription to deploy to
+  Registry: "acr" # Service connection to an Azure Container Registry
+  RepoNameSlack: "slack"
+  RepoNameMeraki: "meraki"
+  TagSlack: "0.0.1"
+  TagMeraki: "0.0.2"
+  ResourceGroup: "siem-prod-eastus"
+
+stages:
+  # Build Docker container
+  - ${{ if eq(parameters.buildContainerSlack, true )}}:
+      - stage: BuildSlackContainer
+        displayName: Build and Push Slack Container
+        jobs:
+          - job: Build_Slack_Container
+            steps:
+              - task: Docker@2
+                displayName: "Build and Push Image to Azure Container Registry (ACR)"
+                inputs:
+                  command: buildAndPush
+                  repository: $(RepoNameSlack)
+                  dockerfile: "./containers/$(RepoNameSlack)/Dockerfile"
+                  containerRegistry: $(Registry)
+                  tags: |
+                    $(TagSlack)
+
+      - stage: DeleteSlackContainerGroup
+        dependsOn:
+          - BuildSlackContainer
+        displayName: Delete Slack Container Group
+        jobs:
+          - job: Delete_Slack_Container
+            steps:
+              - checkout: none
+              - task: AzureCLI@2
+                displayName: Delete Slack Container Group
+                inputs:
+                  azureSubscription: $(Subscription)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    groups=$(az container list --resource-group siem-prod-eastus) | sed 's/\[\]//g'
+
+                    if [[ "$groups" != "" && "$group" == "*$(RepoNameSlack)*" ]];
+                    then
+                      az container delete --name $(RepoNameSlack) --resource-group $(ResourceGroup) --yes
+                    fi
+  - ${{ if eq(parameters.buildContainerMeraki, true )}}:
+      - stage: BuildMerakiContainer
+        displayName: Build and Push Meraki Container
+        jobs:
+          - job: Build_Meraki_Container
+            steps:
+              - task: Docker@2
+                displayName: "Build and Push Image to Azure Container Registry (ACR)"
+                inputs:
+                  command: buildAndPush
+                  repository: "meraki"
+                  dockerfile: "./containers/meraki/Dockerfile"
+                  containerRegistry: $(Registry)
+                  tags: |
+                    $(TagMeraki)
+
+      - stage: DeleteMerakiContainerGroup
+        dependsOn:
+          - BuildMerakiContainer
+        displayName: Delete Meraki Container Group
+        jobs:
+          - job: Delete_Meraki_Container
+            steps:
+              - checkout: none
+              - task: AzureCLI@2
+                displayName: Delete Meraki Container Group
+                inputs:
+                  azureSubscription: $(Subscription)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    groups=$(az container list --resource-group siem-prod-eastus) | sed 's/\[\]//g'
+
+                    if [[ "$groups" != "" && "$group" == "*$(RepoNameMeraki)*" ]];
+                    then
+                      az container delete --name $(RepoNameMeraki) --resource-group $(ResourceGroup) --yes
+                    fi
+
+  # Deploy ARM Template
+  - ${{ if eq(parameters.runTemplateSlack, true )}}:
+      - stage: DeployContainerSlack
+        pool: ${{ parameters.buildServerName }}
+        displayName: "ARM Deploy Logstash Slack Container"
+        jobs:
+          - job: Deploy_Slack_Container_ARM_Template
+            steps:
+              - task: AzureResourceGroupDeployment@2
+                displayName: "Deploy Logstash Slack Container with Volume Mount via ARM Template"
+                inputs:
+                  azureSubscription: $(Subscription)
+                  resourceGroupName: $(ResourceGroup)
+                  csmFile: "./templates/sentinel-connector-slack.json"
+                  deploymentMode: Incremental
+  - ${{ if eq(parameters.runTemplateMeraki, true )}}:
+      - stage: DeployContainerMeraki
+        pool: ${{ parameters.buildServerName }}
+        displayName: "ARM Deploy Logstash Meraki Container"
+        jobs:
+          - job: Deploy_Meraki_Container_ARM_Template
+            steps:
+              - task: AzureResourceGroupDeployment@2
+                displayName: "Deploy Logstash Meraki Container with Volume Mount via ARM Template"
+                inputs:
+                  azureSubscription: $(Subscription)
+                  resourceGroupName: $(ResourceGroup)
+                  csmFile: "./templates/sentinel-connector-meraki.json"
+                  deploymentMode: Incremental
+
+  # Build and publish Azure Function app in subnet
+  - ${{ if eq(parameters.runFunctionBuildDeploy, true )}}:
+      - stage: "BuildFunctionAppService"
+        pool: ${{ parameters.buildServerName }}
+        jobs:
+          - job: "Build_Slack_API_FunctionApp_Service"
+            steps:
+              - script: |
+                  npm install
+                  npm run build --if-present
+                  npm prune --production
+              - task: ArchiveFiles@2
+                displayName: "Archive $(System.DefaultWorkingDirectory) to $(System.DefaultWorkingDirectory)/$(Build.BuildId).zip"
+                inputs:
+                  rootFolderOrFile: $(System.DefaultWorkingDirectory)
+                  includeRootFolder: false
+                  archiveFile: "$(System.DefaultWorkingDirectory)/$(Build.BuildId).zip"
+                  replaceExistingArchive: true
+              - task: CopyFiles@2
+                displayName: "Copy Files to $(Build.ArtifactStagingDirectory)"
+                inputs:
+                  contents: "$(System.DefaultWorkingDirectory)/$(Build.BuildId).zip"
+                  targetFolder: "$(Build.ArtifactStagingDirectory)"
+              - task: PublishBuildArtifacts@1
+                displayName: "Publish Function App Service to $(Build.ArtifactStagingDirectory)"
+                inputs:
+                  pathToPublish: $(Build.ArtifactStagingDirectory)
+                  artifactName: MyBuildOutputs
+
+  - ${{ if eq(parameters.runFunctionBuildDeploy, true )}}:
+      - stage: "ApplicationDeploy"
+        pool: ${{ parameters.buildServerName }}
+        dependsOn:
+          - BuildFunctionAppService
+        condition: succeeded('BuildFunctionAppService')
+        jobs:
+          - job: "Init_Job"
+            steps:
+              - task: AzureCLI@2
+                name: "Init"
+                displayName: "Get Config and Generate Variables"
+                inputs:
+                  azureSubscription: "$(Subscription)"
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    if [ "$(Build.SourceBranchName)" == "master" ] || [ "$(Build.SourceBranchName)" == "stage" ] ; then
+                      Environment="prod"
+                      echo "##vso[task.setvariable variable=Environment;isOutput=true]prod"
+                    else
+                      Environment="dev"
+                      echo "##vso[task.setvariable variable=Environment;isOutput=true]dev"
+                    fi
+
+                    echo "##vso[task.setvariable variable=EastName;isOutput=true]$(AppNamePrefix)-$Environment-eastus"
+
+          - job: "App_Deploy_EastUS"
+            dependsOn: "Init_Job"
+            variables:
+              AppFullName: $[ dependencies.Init_Job.outputs['Init.EastName'] ]
+              ResourceGroup: $[ dependencies.Init_Job.outputs['Init.EastName'] ]
+            steps:
+              - task: DownloadBuildArtifacts@0
+                inputs:
+                  artifactName: MyBuildOutputs
+                  downloadPath: "$(System.ArtifactsDirectory)"
+              - task: AzureFunctionApp@1
+                displayName: "Production deploy"
+                inputs:
+                  azureSubscription: "$(Subscription)"
+                  appType: "functionApp"
+                  appName: "$(AppFullName)"
+                  package: "$(System.ArtifactsDirectory)/MyBuildOutputs/$(Build.BuildId).zip"
+                  deploymentMethod: "auto"
+                condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+              - task: AzureFunctionApp@1
+                displayName: "Stage deploy"
+                inputs:
+                  azureSubscription: "$(Subscription)"
+                  appType: "functionApp"
+                  appName: "$(AppFullName)"
+                  package: "$(System.ArtifactsDirectory)/MyBuildOutputs/$(Build.BuildId).zip"
+                  slotName: "stage"
+                  deploymentMethod: "auto"
+                condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'stage'))
