@@ -108,6 +108,10 @@ Azure Sentinel can be utilized in multiple ways outside of normal security funct
 - **Syslog Ingest Layer**
   - Once we stand up our AKS layer, the goPuff Security Team will be deploying a Syslog ingest layer to allow our network equipment to push data instead of pulling via the API. This will allow us to consume our MSP's router and firewall logs into our environment to help with proactive remediation
 
+## Video Tutorial
+
+[Azure Sentinel Hackathon Submission Video](https://youtu.be/tMBDwF1aF6s)
+
 ## Architecture
 
 Source: [Lucidchart](https://app.lucidchart.com/invitations/accept/da0e21c0-d0d5-4704-b221-be0b18c3c207)
