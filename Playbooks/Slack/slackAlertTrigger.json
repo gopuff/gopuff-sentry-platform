@@ -1,0 +1,74 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "HTTP": {
+                "inputs": {
+                    "body": {
+                        "blocks": [{
+                            "accessory": {
+                                "action_id": "button",
+                                "style": "danger",
+                                "text": {
+                                    "text": "ACT NOW",
+                                    "type": "plain_text"
+                                },
+                                "type": "button",
+                                "value": "IP: 2.255.123.123, fruit: banana"
+                            },
+                            "text": {
+                                "text": ":azure: Azure Security Alert - High Daily Downloads \n The following user has been flagged for rapid download of sensitive information. The user infromation is as follows. \n User Name: `Glenn Danzig` \n User Id: `W123345` \n IP Address: `2.255.249.141` \n Click *ACT NOW* to blacklist.",
+                                "type": "mrkdwn"
+                            },
+                            "type": "section"
+                        }]
+                    },
+                    "method": "POST",
+                    "uri": "https://hooks.slack.com/services/ABC123"
+                },
+                "runAfter": {},
+                "type": "Http"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {},
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "$content": {
+                                "type": "string"
+                            },
+                            "$content-type": {
+                                "type": "string"
+                                "$formdata": {},
+                                "items": {
+                                    "properties": {
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "key",
+                                        "value"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "parameters": {}
+}

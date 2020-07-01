@@ -1,0 +1,102 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "HTTP": {
+                "inputs": {
+                    "authentication": {
+                        "type": "Raw",
+                        "value": ""
+                    },
+                    "body": {
+                        "active": false,
+                        "schemas": [
+                            "urn:scim:schemas:core:1.0"
+                        ]
+                    },
+                    "method": "PATCH",
+                    "uri": "https://api.slack.com/scim/v1/Users/"
+                },
+                "runAfter": {},
+                "type": "Http"
+            },
+            "Post_message": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['slack']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/chat.postMessage",
+                    "queries": {
+                        "channel": "azure-sentinel-rapid-response",
+                        "text": ":azure: Response Action taken!\n_Glenn Danzig has been degraded from an active to inactive account._"
+                    }
+                },
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "$content": {
+                                "type": "string"
+                            },
+                            "$content-type": {
+                                "type": "string"
+                            },
+                            "$formdata": {
+                                "items": {
+                                    "properties": {
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "key",
+                                        "value"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "slack": {
+                    "connectionId": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/siem-prod-eastus/providers/Microsoft.Web/connections/slack",
+                    "connectionName": "slack",
+                    "id": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/providers/Microsoft.Web/locations/eastus/managedApis/slack"
+                }
+            }
+        }
+    }
+}

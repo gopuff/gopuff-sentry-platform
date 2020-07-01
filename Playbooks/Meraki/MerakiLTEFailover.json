@@ -1,0 +1,95 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+      "workflows_meraki_lte_failover_name": {
+          "defaultValue": "meraki-lte-failover",
+          "type": "String"
+      },
+      "connections_azuresentinel_externalid": {
+          "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/siem-prod-eastus/providers/Microsoft.Web/connections/azuresentinel",
+          "type": "String"
+      },
+      "connections_slack_5_externalid": {
+          "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/siem-prod-eastus/providers/Microsoft.Web/connections/slack-5",
+          "type": "String"
+      }
+  },
+  "variables": {},
+  "resources": [
+      {
+          "type": "Microsoft.Logic/workflows",
+          "apiVersion": "2017-07-01",
+          "name": "[parameters('workflows_meraki_lte_failover_name')]",
+          "location": "eastus",
+          "tags": {
+              "AgileTeam": "Infrastructure"
+          },
+          "properties": {
+              "state": "Enabled",
+              "definition": {
+                  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                  "contentVersion": "1.0.0.0",
+                  "parameters": {
+                      "$connections": {
+                          "defaultValue": {},
+                          "type": "Object"
+                      }
+                  },
+                  "triggers": {
+                      "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+                          "type": "ApiConnectionWebhook",
+                          "inputs": {
+                              "body": {
+                                  "callback_url": "@{listCallbackUrl()}"
+                              },
+                              "host": {
+                                  "connection": {
+                                      "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                  }
+                              },
+                              "path": "/subscribe"
+                          }
+                      }
+                  },
+                  "actions": {
+                      "Post_message": {
+                          "runAfter": {},
+                          "type": "ApiConnection",
+                          "inputs": {
+                              "host": {
+                                  "connection": {
+                                      "name": "@parameters('$connections')['slack']['connectionId']"
+                                  }
+                              },
+                              "method": "post",
+                              "path": "/chat.postMessage",
+                              "queries": {
+                                  "channel": "azure-sentinel-rapid-response",
+                                  "text": ":Azure: Meraki Failover Alert\n\n@{triggerBody()?['AlertType']}\n@{triggerBody()?['ExtendedProperties']}\n@{triggerBody()?['Entities']}\n@{triggerBody()?['AlertUri']}"
+                              }
+                          }
+                      }
+                  },
+                  "outputs": {}
+              },
+              "parameters": {
+                  "$connections": {
+                      "value": {
+                          "azuresentinel": {
+                              "connectionId": "[parameters('connections_azuresentinel_externalid')]",
+                              "connectionName": "azuresentinel",
+                              "id": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/providers/Microsoft.Web/locations/eastus/managedApis/azuresentinel"
+                          },
+                          "slack": {
+                              "connectionId": "[parameters('connections_slack_5_externalid')]",
+                              "connectionName": "slack-5",
+                              "id": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/providers/Microsoft.Web/locations/eastus/managedApis/slack"
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  ]
+}
