@@ -1,0 +1,42 @@
+id: 75fd68a2-9ed4-4a1c-8bd7-18efe4c99081 [NEED TO REPLACE]
+name: Slack Filename Keyword Sniffer
+description: |
+  'An account could be blocked if the user triggers a high volume of keyword triggers.'
+tactics:
+  - InitialAccess
+relevantTechniques:
+  - T1078 [NEED TO REPLACE]
+query: |
+  let starttime = 14d;
+  let endtime = 1d;
+  let vitalsDownloadThreshold = 10;
+  slack_CL
+  | where TimeGenerated > ago(starttime)
+  | extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec 
+  | extend dynamicBody = todynamic(entity_body_s)
+  | extend type = tostring(dynamicBody.type)
+  | extend filePayload = todynamic(tostring(dynamicBody.file))
+  | extend fileName = tostring(filePayload.name)
+  | where fileName !contains ".jpg"
+  | where fileName !contains ".png"
+  | where fileName !contains ".mov"
+  | where fileName contains "invoice" 
+      or fileName contains "label"
+      or fileName contains "calculation"
+      or fileName contains "statement"
+      or fileName contains "postal"
+      or fileName contains "notification"
+      or fileName contains "bill"
+      or fileName contains "account"
+      or fileName contains "secur"
+      or fileName contains "verif"
+      or fileName contains "update"
+      or fileName contains "support"
+      or fileName contains "login"
+      or fileName contains "auth"
+      or fileName contains "confirm"
+      or fileName contains "terminat"
+  //| where actor_user_id_s == "[enter potential threat's ID here]"
+  | summarize count() by fileName//actor_user_id_s
+  | order by count_ desc
+  | where count_ > vitalsDownloadThreshold

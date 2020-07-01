@@ -1,0 +1,23 @@
+id: 75fd68a2-9ed4-4a1c-8bd7-18efe4c99081 [THIS MUST BE UPDATED]
+name: High Number of Downloads of sensitive files within the last two weeks
+description: |
+  'An account could be blocked if the user is downloading a high volume of files. This file has a handful of business level information that should not be continuously downloaded.'
+tactics:
+  - InitialAccess
+relevantTechniques:
+  - T1078 [THIS MUST BE UPDATED]
+query: |
+  let starttime = 14d;
+  let endtime = 1d;
+  let vitalsDownloadThreshold = 10;
+  slack_CL
+  | where TimeGenerated > ago(starttime)
+  | extend createTime = datetime(1970-01-01) + tolong(date_create_s) * 1sec
+  | extend dynamicBody = todynamic(entity_body_s)
+  | extend type = tostring(dynamicBody.type)
+  | extend filePayload = todynamic(tostring(dynamicBody.file))
+  | extend fileName = tostring(filePayload.name)
+  | where fileName == "gopuff_daily_vitals_2020"
+  | summarize vitalDownloads = count() by actor_user_name_s, actor_user_id_s//, context_ip_address_s
+  | order by vitalDownloads desc
+  | where vitalDownloads > vitalsDownloadThreshold
