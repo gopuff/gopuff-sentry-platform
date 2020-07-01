@@ -1,0 +1,707 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_slack_api_prod_eastus_name": {
+            "defaultValue": "slack-api-prod-eastus",
+            "type": "String"
+        },
+        "serverfarms_slack_api_prod_eastus_externalid": {
+            "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/slack-api-prod-eastus/providers/Microsoft.Web/serverfarms/slack-api-prod-eastus",
+            "type": "String"
+        },
+        "virtualNetworks_EUSVN_externalid": {
+            "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/EUSRG/providers/Microsoft.Network/virtualNetworks/EUSVN",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_slack_api_prod_eastus_name')]",
+            "location": "East US",
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[parameters('serverfarms_slack_api_prod_eastus_externalid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "properties": {
+                "numberOfWorkers": 10,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "nodeVersion": "~12",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2019",
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$slack-api-prod-eastus",
+                "scmType": "GitHub",
+                "use32BitWorkerProcess": false,
+                "webSocketsEnabled": false,
+                "alwaysOn": true,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": true
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": true,
+                "autoHealRules": {
+                    "triggers": {
+                        "privateBytesInKB": 0,
+                        "statusCodes": [
+                            {
+                                "status": 500,
+                                "subStatus": 0,
+                                "win32Status": 0,
+                                "count": 500,
+                                "timeInterval": "00:00:30"
+                            }
+                        ]
+                    },
+                    "actions": {
+                        "actionType": "Recycle",
+                        "minProcessExecutionTime": "00:00:30"
+                    }
+                },
+                "vnetName": "b9f1a21c-7c34-4ce2-9eef-f44d20340d13_SlackApiSubnet",
+                "cors": {
+                    "allowedOrigins": [
+                        "https://functions.azure.com",
+                        "https://functions-staging.azure.com",
+                        "https://functions-next.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": true,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/787466d802b746759dc279a5186bf51f')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"9b83310a3e79c6a6143a225d29ece8d27509011d\",\"buildId\":\"33136\",\"buildNumber\":\"20200619.6\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-19T16:27:20.811634Z",
+                "end_time": "2020-06-19T16:27:21.8685294Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/83869ec8f5024af8a47654d516be91aa')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"93e6ae64d003d1cc308fd391a8fe29aa5a85a211\",\"buildId\":\"32084\",\"buildNumber\":\"20200611.3\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-11T21:12:51.9769282Z",
+                "end_time": "2020-06-11T21:12:52.6019282Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/8df81015927644e0a8d99810663f850c')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"a6e7d03d9f87e8c8a1f4d9e7df2a8e4663f0943a\",\"buildId\":\"32102\",\"buildNumber\":\"20200611.4\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-11T22:04:27.7906357Z",
+                "end_time": "2020-06-11T22:04:28.4312609Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/978758d1bd7041498558d387a03d56f0')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"07846ef1b93ac36c408427adc6b7ea7b9fa9bfd0\",\"buildId\":\"31953\",\"buildNumber\":\"20200611.1\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-11T13:59:56.510454Z",
+                "end_time": "2020-06-11T13:59:57.4043044Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/a13a4767da1d442c85c129bfd749a9d8')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"ee050354675df55c0ae7ea8a3ff9373cfc38d025\",\"buildId\":\"32804\",\"buildNumber\":\"20200617.3\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-17T20:14:11.9924692Z",
+                "end_time": "2020-06-17T20:14:13.2801566Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/d13d9e5c133b439b932cc151ba1b590f')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"ab0066c6eaf4f700d896d2d5694e193b89fd2c74\",\"buildId\":\"32247\",\"buildNumber\":\"20200612.2\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-12T21:14:36.6991498Z",
+                "end_time": "2020-06-12T21:14:37.761652Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/d1e6964449964cef88f8a9643a3411f9')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"ee7cadb7feff42e89a3dad8b6c35690af218daf8\",\"buildId\":\"32806\",\"buildNumber\":\"20200617.4\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-17T20:22:28.8941919Z",
+                "end_time": "2020-06-17T20:22:29.7066851Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/e13384d87e1c426fadca02a72af5fadf')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"35dd0c79821f6d7c206d01c6d00e80916480d3a3\",\"buildId\":\"31338\",\"buildNumber\":\"20200605.11\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-05T22:06:52.3642996Z",
+                "end_time": "2020-06-05T22:06:53.0361681Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/edc8ce3eda5745a1990306c508e083ac')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"4b9cd86fd505d89da180f1723804247884025e80\",\"buildId\":\"31707\",\"buildNumber\":\"20200610.1\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-10T05:10:28.777549Z",
+                "end_time": "2020-06-10T05:10:29.4650601Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/f1bbe110ba624eed9b9001383c469528')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"a34840b54b0f2c78e8bc99326e30234233e8eb69\",\"buildId\":\"32104\",\"buildNumber\":\"20200611.5\",\"repoProvider\":\"GitHub\",\"repoName\":\"/slack-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-11T22:27:26.7133014Z",
+                "end_time": "2020-06-11T22:27:27.3539605Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/getAuditLogs')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getAuditLogs/",
+                "script_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getAuditLogs/index.js",
+                "config_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getAuditLogs/function.json",
+                "href": "https://slack-api-prod-eastus.azurewebsites.net/admin/functions/getAuditLogs",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/slackFileDownloadsToEventHub')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/slackFileDownloadsToEventHub/",
+                "script_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/slackFileDownloadsToEventHub/index.js",
+                "config_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/slackFileDownloadsToEventHub/function.json",
+                "href": "https://slack-api-prod-eastus.azurewebsites.net/admin/functions/slackFileDownloadsToEventHub",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/userLogin')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/userLogin/",
+                "script_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/userLogin/index.js",
+                "config_href": "https://slack-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/userLogin/function.json",
+                "href": "https://slack-api-prod-eastus.azurewebsites.net/admin/functions/userLogin",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/', parameters('sites_slack_api_prod_eastus_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "siteName": "slack-api-prod-eastus",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/slots",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/stage')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "slack-api-prod-eastus-stage.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "slack-api-prod-eastus-stage.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[parameters('serverfarms_slack_api_prod_eastus_externalid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/slots",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/warm')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "slack-api-prod-eastus-warm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "slack-api-prod-eastus-warm.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[parameters('serverfarms_slack_api_prod_eastus_externalid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/virtualNetworkConnections",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/b9f1a21c-7c34-4ce2-9eef-f44d20340d13_SlackApiSubnet')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "vnetResourceId": "[concat(parameters('virtualNetworks_EUSVN_externalid'), '/subnets/SlackApiSubnet')]",
+                "isSwift": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/slots/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/stage/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites/slots', parameters('sites_slack_api_prod_eastus_name'), 'stage')]",
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "properties": {
+                "numberOfWorkers": 10,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "nodeVersion": "~12",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2019",
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$slack-api-prod-eastus__stage",
+                "scmType": "GitHub",
+                "use32BitWorkerProcess": false,
+                "webSocketsEnabled": false,
+                "alwaysOn": true,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": true
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "autoHealRules": {},
+                "cors": {
+                    "allowedOrigins": [
+                        "https://functions.azure.com",
+                        "https://functions-staging.azure.com",
+                        "https://functions-next.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": true,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/slots/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/warm/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites/slots', parameters('sites_slack_api_prod_eastus_name'), 'warm')]",
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "properties": {
+                "numberOfWorkers": 10,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "nodeVersion": "~12",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2019",
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$slack-api-prod-eastus__warm",
+                "scmType": "GitHub",
+                "use32BitWorkerProcess": false,
+                "webSocketsEnabled": false,
+                "alwaysOn": true,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": true
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "autoHealRules": {},
+                "cors": {
+                    "allowedOrigins": [
+                        "https://functions.azure.com",
+                        "https://functions-staging.azure.com",
+                        "https://functions-next.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": true,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/slots/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/stage/', parameters('sites_slack_api_prod_eastus_name'), '-stage.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites/slots', parameters('sites_slack_api_prod_eastus_name'), 'stage')]",
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "siteName": "slack-api-prod-eastus(stage)",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/slots/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_slack_api_prod_eastus_name'), '/warm/', parameters('sites_slack_api_prod_eastus_name'), '-warm.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites/slots', parameters('sites_slack_api_prod_eastus_name'), 'warm')]",
+                "[resourceId('Microsoft.Web/sites', parameters('sites_slack_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "siteName": "slack-api-prod-eastus(warm)",
+                "hostNameType": "Verified"
+            }
+        }
+    ]
+}

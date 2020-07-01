@@ -1,0 +1,390 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namespaces_sentinel_prod_eastus_name": {
+            "defaultValue": "sentinel-prod-eastus",
+            "type": "String"
+        },
+        "virtualNetworks_eusvn_externalid": {
+            "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/eusrg/providers/Microsoft.Network/virtualNetworks/eusvn",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.EventHub/namespaces",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[parameters('namespaces_sentinel_prod_eastus_name')]",
+            "location": "East US",
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard",
+                "capacity": 3
+            },
+            "properties": {
+                "zoneRedundant": true,
+                "isAutoInflateEnabled": true,
+                "maximumThroughputUnits": 10,
+                "kafkaEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/RootManageSharedAccessKey')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Manage",
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakideviceips')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "messageRetentionInDays": 3,
+                "partitionCount": 3,
+                "status": "Active"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakiorgdevices')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "messageRetentionInDays": 3,
+                "partitionCount": 3,
+                "status": "Active"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/slack')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "messageRetentionInDays": 3,
+                "partitionCount": 3,
+                "status": "Active"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/ipfilterrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/457db42a-54ca-4462-a2f4-1e794d89d4c4')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "ipMask": "172.16.16.32/27",
+                "action": "Accept",
+                "filterName": "457db42a-54ca-4462-a2f4-1e794d89d4c4"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/ipfilterrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/4bc5e67a-d849-4a8d-abcc-cb021da332e2')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "ipMask": "172.16.17.32/27",
+                "action": "Accept",
+                "filterName": "4bc5e67a-d849-4a8d-abcc-cb021da332e2"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/ipfilterrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/a21a3880-7adf-4cb0-8a19-8fde687ca3fb')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "ipMask": "172.16.16.0/27",
+                "action": "Accept",
+                "filterName": "a21a3880-7adf-4cb0-8a19-8fde687ca3fb"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/ipfilterrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/ed450f60-c3b1-4947-9ecf-27befd3b0206')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "ipMask": "172.16.17.0/27",
+                "action": "Accept",
+                "filterName": "ed450f60-c3b1-4947-9ecf-27befd3b0206"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/networkRuleSets",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/default')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "defaultAction": "Deny",
+                "virtualNetworkRules": [
+                    {
+                        "subnet": {
+                            "id": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/logstashsubnet')]"
+                        },
+                        "ignoreMissingVnetServiceEndpoint": false
+                    },
+                    {
+                        "subnet": {
+                            "id": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/merakiapisubnet')]"
+                        },
+                        "ignoreMissingVnetServiceEndpoint": false
+                    },
+                    {
+                        "subnet": {
+                            "id": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/slackapisubnet')]"
+                        },
+                        "ignoreMissingVnetServiceEndpoint": false
+                    },
+                    {
+                        "subnet": {
+                            "id": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/merakisubnet')]"
+                        },
+                        "ignoreMissingVnetServiceEndpoint": false
+                    }
+                ],
+                "ipRules": [
+                    {
+                        "ipMask": "172.16.17.0/27",
+                        "action": "Allow"
+                    },
+                    {
+                        "ipMask": "172.16.17.32/27",
+                        "action": "Allow"
+                    },
+                    {
+                        "ipMask": "172.16.16.32/27",
+                        "action": "Allow"
+                    },
+                    {
+                        "ipMask": "172.16.16.0/27",
+                        "action": "Allow"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/virtualnetworkrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/0c0c4cf4-12e5-4d96-862a-655e121e073b-eusrg-eusvn-logstashsubnet')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "virtualNetworkSubnetId": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/logstashsubnet')]"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/virtualnetworkrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/0c0c4cf4-12e5-4d96-862a-655e121e073b-eusrg-eusvn-merakiapisubnet')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "virtualNetworkSubnetId": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/merakiapisubnet')]"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/virtualnetworkrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/0c0c4cf4-12e5-4d96-862a-655e121e073b-eusrg-eusvn-merakisubnet')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "virtualNetworkSubnetId": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/merakisubnet')]"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/virtualnetworkrules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/0c0c4cf4-12e5-4d96-862a-655e121e073b-eusrg-eusvn-slackapisubnet')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "virtualNetworkSubnetId": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/slackapisubnet')]"
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/slack/auditLogs')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'slack')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakideviceips/consumer')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'merakideviceips')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakiorgdevices/consumer')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'merakiorgdevices')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/slack/PreviewDataPolicy')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'slack')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakideviceips/producer')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'merakideviceips')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakiorgdevices/producer')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'merakiorgdevices')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakideviceips/$Default')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'merakideviceips')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/merakiorgdevices/$Default')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'merakiorgdevices')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/slack/$Default')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'slack')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_sentinel_prod_eastus_name'), '/slack/preview_data_consumer_group')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('namespaces_sentinel_prod_eastus_name'), 'slack')]",
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaces_sentinel_prod_eastus_name'))]"
+            ],
+            "properties": {}
+        }
+    ]
+}
