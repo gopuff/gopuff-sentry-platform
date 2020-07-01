@@ -1,0 +1,615 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_meraki_api_prod_eastus_name": {
+            "defaultValue": "meraki-api-prod-eastus",
+            "type": "String"
+        },
+        "serverfarms_meraki_api_prod_eastus_externalid": {
+            "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/meraki-api-prod-eastus/providers/Microsoft.Web/serverfarms/meraki-api-prod-eastus",
+            "type": "String"
+        },
+        "virtualNetworks_eusvn_externalid": {
+            "defaultValue": "/subscriptions/0c0c4cf4-12e5-4d96-862a-655e121e073b/resourceGroups/eusrg/providers/Microsoft.Network/virtualNetworks/eusvn",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_meraki_api_prod_eastus_name')]",
+            "location": "East US",
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[parameters('serverfarms_meraki_api_prod_eastus_externalid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "tags": {
+                "AgileTeam": "Infrastructure"
+            },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "nodeVersion": "~12",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2019",
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$meraki-api-prod-eastus",
+                "scmType": "GitHub",
+                "use32BitWorkerProcess": false,
+                "webSocketsEnabled": false,
+                "alwaysOn": true,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": true
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "vnetName": "b9f1a21c-7c34-4ce2-9eef-f44d20340d13_MerakiApiSubnet",
+                "cors": {
+                    "allowedOrigins": [
+                        "https://functions.azure.com",
+                        "https://functions-staging.azure.com",
+                        "https://functions-next.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/11c67770d44043fa96b40e4b0360a353')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"6879e55860cef058149d30981db63cfc7d602503\",\"buildId\":\"34205\",\"buildNumber\":\"20200626.5\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-26T19:20:47.66344Z",
+                "end_time": "2020-06-26T19:20:48.9759034Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/28d8191358b84054b698a51e41de926c')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"c4b9421ef207ea9215493595ad4541c93f1a276e\",\"buildId\":\"34061\",\"buildNumber\":\"20200626.3\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-26T13:32:22.2836351Z",
+                "end_time": "2020-06-26T13:32:23.7992989Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/682ce43a74a04be3bded7ada85bd1118')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"7dba3a451f93dcc8bc7ccaaa745184a769773e80\",\"buildId\":\"33999\",\"buildNumber\":\"20200625.2\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-25T20:39:54.4938927Z",
+                "end_time": "2020-06-25T20:39:55.462637Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/7c9b9f41efbf4c809c4dd992bc969565')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"7925b59abc4f0060180bfb5fd96cf2436eca7482\",\"buildId\":\"34018\",\"buildNumber\":\"20200625.4\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-25T21:56:55.1807627Z",
+                "end_time": "2020-06-25T21:56:56.4776179Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/8362e1365a3e4a178f411bfdfeeb345c')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"52af375be5b25ed7c6a04594eb3cc0aa0ddcecf1\",\"buildId\":\"34010\",\"buildNumber\":\"20200625.3\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-25T21:34:31.1690816Z",
+                "end_time": "2020-06-25T21:34:32.1335947Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/ba0bc28434dd4d76bb6db5c78facf100')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"7b9bc7bc7102a4a756a7a046f338b22d65534db4\",\"buildId\":\"34023\",\"buildNumber\":\"20200625.5\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-25T22:19:55.2151032Z",
+                "end_time": "2020-06-25T22:19:56.3244878Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/d2785495f5e4493384c66ef9364afce2')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"0d2d1cd1765105a1a78f31615460ba9ffd95f68b\",\"buildId\":\"34255\",\"buildNumber\":\"20200626.6\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-26T20:46:00.6745657Z",
+                "end_time": "2020-06-26T20:46:01.9712861Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/dde89cafd98a41d9bfce1496a3f585ec')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"04147dd7f93136f9a90800da619dee487da0516f\",\"buildId\":\"33826\",\"buildNumber\":\"20200624.4\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-24T23:22:29.273557Z",
+                "end_time": "2020-06-24T23:22:30.3048216Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/e0001616b1524ae49b117f6ac5afe43b')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"11244332c9694ab737892ca808669a7c2e9d4fe2\",\"buildId\":\"33998\",\"buildNumber\":\"20200625.1\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-25T20:31:37.3898033Z",
+                "end_time": "2020-06-25T20:31:38.5289977Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/e8a474a9853d4452bfe009622b8df018')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "VSTS",
+                "message": "{\"type\":\"deployment\",\"commitId\":\"0c817e0054155ddcf95228d98ee4da0e0d9e1e22\",\"buildId\":\"34068\",\"buildNumber\":\"20200626.4\",\"repoProvider\":\"GitHub\",\"repoName\":\"/meraki-api-functions\",\"collectionUrl\":\"https://dev.azure.com/\",\"teamProject\":\"e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"buildProjectUrl\":\"https://dev.azure.com/e3caa484-5a62-4c5c-8b8d-50ce92b91960\",\"repositoryUrl\":\"\",\"branch\":\"master\",\"teamProjectName\":\"Common Infrastructure\",\"slotName\":\"production\"}",
+                "start_time": "2020-06-26T14:00:00.2982106Z",
+                "end_time": "2020-06-26T14:00:01.6997745Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/createAdminNetworkAssociation')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createAdminNetworkAssociation/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createAdminNetworkAssociation/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createAdminNetworkAssociation/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/createAdminNetworkAssociation",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/createAdmins')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createAdmins/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createAdmins/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createAdmins/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/createAdmins",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/createOrganizationNetwork')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createOrganizationNetwork/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createOrganizationNetwork/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/createOrganizationNetwork/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/createOrganizationNetwork",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/deleteOrganizationNetwork')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/deleteOrganizationNetwork/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/deleteOrganizationNetwork/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/deleteOrganizationNetwork/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/deleteOrganizationNetwork",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getAdmins')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getAdmins/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getAdmins/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getAdmins/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getAdmins",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getOrgDevices')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getOrgDevices/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getOrgDevices/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getOrgDevices/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getOrgDevices",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getOrgDevicesTimed')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getOrgDevicesTimed/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getOrgDevicesTimed/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getOrgDevicesTimed/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getOrgDevicesTimed",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getPublicIps')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getPublicIps/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getPublicIps/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getPublicIps/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getPublicIps",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getPublicIpTimed')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getPublicIpTimed/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getPublicIpTimed/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getPublicIpTimed/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getPublicIpTimed",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getSamlRole')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getSamlRole/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getSamlRole/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getSamlRole/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getSamlRole",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/getSamlRoles')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getSamlRoles/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getSamlRoles/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/getSamlRoles/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/getSamlRoles",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/networks')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/networks/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/networks/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/networks/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/networks",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/organizations')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/organizations/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/organizations/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/organizations/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/organizations",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/publicIp')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/publicIp/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/publicIp/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/publicIp/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/publicIp",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/updateAdmin')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/updateAdmin/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/updateAdmin/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/updateAdmin/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/updateAdmin",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/updateSamlRole')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/updateSamlRole/",
+                "script_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/updateSamlRole/index.js",
+                "config_href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/vfs/site/wwwroot/updateSamlRole/function.json",
+                "href": "https://meraki-api-prod-eastus.azurewebsites.net/admin/functions/updateSamlRole",
+                "config": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/', parameters('sites_meraki_api_prod_eastus_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "siteName": "meraki-api-prod-eastus",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/virtualNetworkConnections",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_meraki_api_prod_eastus_name'), '/b9f1a21c-7c34-4ce2-9eef-f44d20340d13_MerakiApiSubnet')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_meraki_api_prod_eastus_name'))]"
+            ],
+            "properties": {
+                "vnetResourceId": "[concat(parameters('virtualNetworks_eusvn_externalid'), '/subnets/MerakiApiSubnet')]",
+                "isSwift": true
+            }
+        }
+    ]
+}
